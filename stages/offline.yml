@@ -1,0 +1,25 @@
+region: 'us-east-2'
+environment:
+  ENV: 'offline'
+  REGION: 'us-east-2'
+  AWS_ACCOUNT_ID: '123456789012'
+
+  SECURITY_GROUP_ID: 'sg'
+  SUBNET_ID_1: 'subnet-1'
+  SUBNET_ID_2: 'subnet-2'
+
+  ALLOWED_ORIGIN: '*'
+  QUERY_LIMIT: 1000
+
+  INDEXER_DB_USERNAME: 'postgres'
+  TESTNET_DB_NAME: 'sui_indexer_testnet'
+  MAINNET_DB_NAME: 'sui_indexer_mainnet'
+  REQUESTS_PER_SECOND: 1
+
+  DYNAMODB_ENDPOINT: 'http://127.0.0.1:4659'
+  SQS_ENDPOINT: 'http://0.0.0.0:9324'
+  SNS_ENDPOINT: 'http://127.0.0.1:4002'
+
+  SUI_PACKAGE_ADDRESS: '0xbde01689197bbfe9c02541417058ee9dda5dbd05d0ae4628d15017d49e24a36d'
+  SUI_USERS_RATING_COLLECTION: '0x01e528e665fd69b2cf857f5535fc82b8282c9e77062f4824f4550852151fbe30'
+  SUI_RPC_ENDPOINT: "https://fullnode.testnet.sui.io/"

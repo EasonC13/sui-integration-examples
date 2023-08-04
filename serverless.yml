@@ -1,0 +1,146 @@
+service: sui-integration-examples
+
+custom:
+  stage: ${opt:stage, 'offline'}
+  region: ${file(./stages/${self:custom.stage}.yml):region}
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    includeModules: true
+  serverless-offline:
+    httpPort: 5000
+    noPrependStageInUrl: true
+    ignoreJWTSignature: true
+
+provider:
+  name: aws
+  region: ${self:custom.region}
+  runtime: nodejs16.x
+  environment: ${file(./stages/${self:custom.stage}.yml):environment}
+  memorySize: 512
+  timeout: 10
+  logRetentionInDays: 30
+  lambdaHashingVersion: 20201221
+  logs:
+    httpApi: true
+  httpApi:
+    cors:
+      allowedOrigins:
+        - ${self:provider.environment.ALLOWED_ORIGIN}
+      allowedMethods:
+        - POST
+        - OPTIONS
+      allowedHeaders:
+        - '*'
+    authorizers:
+      validate-token:
+        type: request
+        resultTtlInSeconds: 0
+        functionName: validate-token
+        identitySource: ["$request.header.Authorization"]
+  ecr:
+    images:
+      peeranha-ecs-nodejs:
+        path: ./
+        file: Dockerfile
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+            - sqs:SendMessage
+          Resource: "*"
+          
+  vpc:
+    securityGroupIds:
+      - ${self:provider.environment.SECURITY_GROUP_ID}
+    subnetIds:
+      - ${self:provider.environment.SUBNET_ID_1}
+      - ${self:provider.environment.SUBNET_ID_2}
+
+fargate:
+  vpc:
+    securityGroupIds:
+      - ${self:provider.environment.SECURITY_GROUP_ID}
+    subnetIds:
+      - ${self:provider.environment.SUBNET_ID_1}
+      - ${self:provider.environment.SUBNET_ID_2}
+    assignPublicIp: true
+  tasks:
+    sui-events-listener:
+      name: ${self:custom.stage}-sui-events-listener
+      image: sui-ecs-nodejs
+      command:
+        - "./dist/sui-events-listener.mjs"
+      environment:
+        ENV: ${self:provider.environment.ENV}
+        REGION: ${self:provider.environment.REGION}
+        SQS_ENDPOINT: ${self:provider.environment.SQS_ENDPOINT}
+        AWS_ACCOUNT_ID: ${self:provider.environment.AWS_ACCOUNT_ID}
+        DYNAMODB_ENDPOINT: ${self:provider.environment.DYNAMODB_ENDPOINT}
+        SUI_PACKAGE_ADDRESS: ${self:provider.environment.SUI_PACKAGE_ADDRESS}
+        SUI_USERS_RATING_COLLECTION: ${self:provider.environment.SUI_USERS_RATING_COLLECTION}
+        SUI_RPC_ENDPOINT: ${self:provider.environment.SUI_RPC_ENDPOINT}
+  
+functions:
+  sui-sign-sponsored-transaction:
+    handler: src/handlers/sui-sign-sponsored-transaction.handler
+    events:
+      - httpApi:
+          path: '/blockchain/sui-sign-sponsored-transaction'
+          method: 'POST'
+
+  account-register:
+    handler: src/handlers/account-register.handler
+    events:
+      - httpApi:
+          path: '/account/register'
+          method: 'POST'
+
+  validate-token:
+    handler: src/handlers/validate-token.handler
+
+resources:
+  Resources:
+    userTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.stage}-suiql-user
+        AttributeDefinitions:
+          - AttributeName: login
+            AttributeType: S
+        KeySchema:
+          - AttributeName: login
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    webhooksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.stage}-suiql-webhook
+        AttributeDefinitions:
+          - AttributeName: webhook_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: webhook_id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    suiQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.stage}-suiQueue.fifo
+        VisibilityTimeout: 50
+        FifoQueue: true
+        ContentBasedDeduplication: true
+        DeduplicationScope: messageGroup
+        FifoThroughputLimit: perMessageGroupId
+
+package:
+  individually: true
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-offline-sqs
+  - serverless-offline-sns
+  - serverless-middleware
+
