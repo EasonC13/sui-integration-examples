@@ -1,7 +1,6 @@
 import fetch from 'cross-fetch';
 
-import { log, LogLevel, logToCloudWatch, logErrorToCloudWatch } from './logger';
-import { handleRateLimit } from './rate-limiter-middleware';
+import { log, LogLevel } from './logger';
 import {
   UnauthorizedError,
   BadRequestError,
@@ -157,12 +156,9 @@ async function baseHandleRequest(
     }
     const responseModel = await handlerFunc(requestModel);
 
-    logToCloudWatch(event);
-
     return getHttpResponse(StatusCodes.OK, responseModel, responseType);
   } catch (error: any) {
     log(error, LogLevel.ERROR);
-    logErrorToCloudWatch(event, error);
 
     if (error instanceof NotFoundError) {
       return getHttpResponse(StatusCodes.NOT_FOUND, 'Not found');
@@ -192,12 +188,10 @@ export async function handleRequest(
   event: any,
   responseType: ResponseType = ResponseType.JSON
 ): Promise<any> {
-  return handleRateLimit(event, async () => {
     return baseHandleRequest(
-      RequestModelType,
-      handlerFunc,
-      event,
-      responseType
-    );
-  });
+    RequestModelType,
+    handlerFunc,
+    event,
+    responseType
+  );
 }
