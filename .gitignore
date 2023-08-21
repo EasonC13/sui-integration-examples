@@ -1,0 +1,18 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+.webpack
+
+package-lock.json
+
+.mesh
+!.mesh/schema.graphql
+
+.env
+
+secrets.json
+.meshrc.yaml

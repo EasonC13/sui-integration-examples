@@ -1,0 +1,19 @@
+region: 'eu-central-1'
+environment:
+  ENV: 'prod'
+  REGION: 'eu-central-1'
+  AWS_ACCOUNT_ID: '939077196930'
+
+  SECURITY_GROUP_ID: 'sg-0d370a12a9b67cc8f'
+  SUBNET_ID_1: 'subnet-3cd03656'
+  SUBNET_ID_2: 'subnet-7cf7d731'
+
+  ALLOWED_ORIGIN: '*'
+  QUERY_LIMIT: 1000
+
+  DB_HOST: 'prod-sui-indexer-instance-1-eu-central-1a.ckrtxeneittw.eu-central-1.rds.amazonaws.com'
+  DB_PORT: '5432'
+  INDEXER_DB_USERNAME: 'postgres'
+  TESTNET_DB_NAME: 'sui_indexer_testnet'
+  MAINNET_DB_NAME: 'sui_indexer_mainnet'
+  REQUESTS_PER_SECOND: 1
