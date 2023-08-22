@@ -39,7 +39,7 @@ The diagram below illustrates the sequence of steps for executing a sponsored tr
 
 ![Sponsored Transaction Diagram](images/sponsor.png)
 
-The Lambda function `sui-sign-sponsored-transaction` is responsible for signing the sponsored transaction.
+The Lambda function `sui-sign-sponsored-transaction` is responsible for signing the sponsored transaction. Sponsor signer private key is stored in AWS Secrets Manager.
 
 Here's an example of client code:
 
