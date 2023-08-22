@@ -1,19 +1,18 @@
-region: 'us-west-1'
+region: 'us-east-2'
 environment:
   ENV: 'test'
-  REGION: 'us-west-1'
+  REGION: 'us-east-2'
   AWS_ACCOUNT_ID: '939077196930'
 
-  SECURITY_GROUP_ID: 'sg-0321ff7fa9f475cc3'
-  SUBNET_ID_1: 'subnet-0f3ba15285996ab44'
-  SUBNET_ID_2: 'subnet-08337192cf9271ba6'
+  SECURITY_GROUP_ID: 'sg-b90a3dde'
+  SUBNET_ID_1: 'subnet-0b05f160'
+  SUBNET_ID_2: 'subnet-f4be9c8e'
 
-  ALLOWED_ORIGIN: '*'
-  QUERY_LIMIT: 1000
+  ALLOWED_ORIGIN: '*' # UPDATE
 
-  DB_HOST: 'prod-sui-indexer-instance-1.ckrtxeneittw.eu-central-1.rds.amazonaws.com'
-  DB_PORT: '5432'
-  INDEXER_DB_USERNAME: 'postgres'
-  TESTNET_DB_NAME: 'sui_indexer_testnet'
-  MAINNET_DB_NAME: 'sui_indexer_mainnet'
-  REQUESTS_PER_SECOND: 1
+  DYNAMODB_ENDPOINT: https://dynamodb.us-east-2.amazonaws.com
+  SNS_ENDPOINT: 'https://sns.us-east-2.amazonaws.com'
+  SQS_ENDPOINT: 'https://sqs.us-east-2.amazonaws.com'
+
+  SUI_PACKAGE_ADDRESS: '0xc2f6f4d5e11f5172f17dcb3e5570a9e5e127f4d16b541a9f93a5d8c6c43eace2'
+  SUI_RPC_ENDPOINT: "https://fullnode.testnet.sui.io/"

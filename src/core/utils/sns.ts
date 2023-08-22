@@ -1,10 +1,7 @@
+import AWS from 'aws-sdk';
 import fetch from 'cross-fetch';
-import { getSecretValue } from 'src/core/utils/secrets';
-import { publishSlackMessage } from 'src/core/utils/slack';
 
 import { log, LogLevel } from './logger';
-
-const AWS = require('aws-sdk');
 
 global.fetch = fetch;
 
@@ -50,12 +47,7 @@ export async function handleSnsEvent<TRequestModelType>(
       LogLevel.INFO
     );
   } catch (error: any) {
-    const slackChannel = await getSecretValue('API_ERRORS_SLACK_CHANNEL');
     log('SNS handler execution failed.', LogLevel.ERROR);
     log(error, LogLevel.ERROR);
-    await publishSlackMessage(
-      slackChannel,
-      `*API error reported: SNS handler ${handlerFunc.name} execution failed.*\n\`\`\`${error.stack}\`\`\``
-    );
   }
 }

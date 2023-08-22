@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+jspm_packages
+
+# Serverless
+.serverless
+
+# Dynamodb
+.dynamodb
+
+# Webpack
+.webpack
+
+# Dotenv files
+.env*.local
+
+# Local folder
+local
+.idea
+s3-local
+
+# Misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# Error logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev.sqlite3
+
+# Environment secrets
+stages/secrets
+.env

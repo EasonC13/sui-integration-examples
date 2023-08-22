@@ -1,6 +1,4 @@
 import fetch from 'cross-fetch';
-import { getSecretValue } from 'src/core/utils/secrets';
-import { publishSlackMessage } from 'src/core/utils/slack';
 
 import { log, LogLevel } from './logger';
 
@@ -19,12 +17,7 @@ export async function handleScheduleRequest(
       LogLevel.INFO
     );
   } catch (error: any) {
-    const slackChannel = await getSecretValue('API_ERRORS_SLACK_CHANNEL');
     log('Scheduled handler execution failed.', LogLevel.ERROR);
     log(error, LogLevel.ERROR);
-    await publishSlackMessage(
-      slackChannel,
-      `*API error reported: Scheduled handler ${handlerFunc.name} execution failed.*\n\`\`\`${error.stack}\`\`\``
-    );
   }
 }

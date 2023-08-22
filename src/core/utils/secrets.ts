@@ -12,15 +12,13 @@ const client = new SecretsManagerClient({ region: process.env.REGION });
 
 export async function getSecretValue(secretName: string) {
   if (process.env.ENV === 'offline') {
-    const secrets = require('../../../secrets.json');
-    const secretValue = secrets[secretName];
-    console.log(secretValue);
+    const secretValue = process.env[secretName];
     if (!secretValue) {
       throw new ConfigurationError(
-        `Missing environment variable ${secretName}`
+        `Missing environment variable ${secretName}. Check your .env file.`
       );
     }
-    return secrets[secretName];
+    return process.env[secretName];
   }
   try {
     const fullSecretName = `${process.env.ENV}/${secretName}`;

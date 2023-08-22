@@ -1,5 +1,5 @@
-import AWS, { DynamoDB } from 'aws-sdk';
-import { AttributeMap, Key, TransactWriteItem } from 'aws-sdk/clients/dynamodb';
+import { DynamoDB } from 'aws-sdk';
+import { AttributeMap, Key } from 'aws-sdk/clients/dynamodb';
 
 import { DynamoDBConnector } from '../DynamoDbConnector';
 
@@ -39,47 +39,6 @@ export abstract class BaseDynamoDbRepository<EntityT, KeyT> {
       return null;
     }
     return this.fromAttributeMap(response.Item);
-  }
-
-  public async getItems(params: any = {}): Promise<EntityT[] | null> {
-    const result: EntityT[] = [];
-    const response = await this.dynamoDB
-      .scan({
-        ...params,
-        TableName: this.tableName,
-      })
-      .promise();
-    if (!response.Items) {
-      return null;
-    }
-    response.Items.forEach((e) => result.push(this.fromAttributeMap(e)));
-    return result;
-  }
-
-  public async getCount(params: any = {}): Promise<number> {
-    const response = await this.dynamoDB
-      .scan({
-        ...params,
-        TableName: this.tableName,
-        Select: 'COUNT',
-      })
-      .promise();
-    if (!response.Count) {
-      return 0;
-    }
-    return response.Count;
-  }
-
-  public async hasKey(key: KeyT): Promise<boolean> {
-    const keyItem = this.buildKey(key);
-    const response = await this.dynamoDB
-      .getItem({
-        TableName: this.tableName,
-        Key: keyItem,
-      })
-      .promise();
-
-    return !!response.Item;
   }
 
   public async put(item: EntityT): Promise<EntityT> {
@@ -140,63 +99,6 @@ export abstract class BaseDynamoDbRepository<EntityT, KeyT> {
       })
       .promise();
     return item;
-  }
-
-  public async updateFields(
-    key: KeyT,
-    fields: string[],
-    values: any[]
-  ): Promise<EntityT | undefined> {
-    const preparedValues: { [id: string]: any } = {};
-    values.forEach((e) => {
-      preparedValues[`:${e}`] = AWS.DynamoDB.Converter.input(e);
-    });
-    const updateExpression = `SET ${fields
-      .map((e) => `${e} = :${e}`)
-      .join(', ')}`;
-    const response = await this.dynamoDB
-      .updateItem({
-        TableName: this.tableName,
-        Key: this.buildKey(key),
-        UpdateExpression: updateExpression,
-        ExpressionAttributeValues: preparedValues,
-        ReturnValues: 'ALL_NEW',
-      })
-      .promise();
-    return response.Attributes
-      ? this.fromAttributeMap(response.Attributes)
-      : response.Attributes;
-  }
-
-  public async delete(key: KeyT): Promise<KeyT> {
-    const keyItem = this.buildKey(key);
-    await this.dynamoDB
-      .deleteItem({
-        TableName: this.tableName,
-        Key: keyItem,
-      })
-      .promise();
-    return key;
-  }
-
-  public createPutQuery(item: EntityT): TransactWriteItem {
-    const itemAttributeMap = this.toAttributeMap(item);
-    return {
-      Put: {
-        Item: itemAttributeMap,
-        TableName: this.tableName,
-      },
-    };
-  }
-
-  public createDeleteQuery(key: KeyT): TransactWriteItem {
-    const keyItem = this.buildKey(key);
-    return {
-      Delete: {
-        Key: keyItem,
-        TableName: this.tableName,
-      },
-    };
   }
 
   public getTableName() {

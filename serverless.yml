@@ -3,13 +3,29 @@ service: sui-integration-examples
 custom:
   stage: ${opt:stage, 'offline'}
   region: ${file(./stages/${self:custom.stage}.yml):region}
-  webpack:
-    webpackConfig: 'webpack.config.js'
-    includeModules: true
   serverless-offline:
     httpPort: 5000
     noPrependStageInUrl: true
     ignoreJWTSignature: true
+  dynamodb:
+    stages:
+      - offline
+    start:
+      port: 4659
+      inMemory: true
+      migrate: true
+  serverless-offline-sqs:
+    autoCreate: true
+    endpoint: http://0.0.0.0:9324
+    region: ${self:custom.region}
+    accessKeyId: root
+    secretAccessKey: root
+  elasticmq:
+    stages:
+      - dev
+    start:
+      port: 9324
+      noStart: false
 
 provider:
   name: aws
@@ -19,7 +35,6 @@ provider:
   memorySize: 512
   timeout: 10
   logRetentionInDays: 30
-  lambdaHashingVersion: 20201221
   logs:
     httpApi: true
   httpApi:
@@ -31,15 +46,9 @@ provider:
         - OPTIONS
       allowedHeaders:
         - '*'
-    authorizers:
-      validate-token:
-        type: request
-        resultTtlInSeconds: 0
-        functionName: validate-token
-        identitySource: ["$request.header.Authorization"]
   ecr:
     images:
-      peeranha-ecs-nodejs:
+      sui-integration-examples-nodejs:
         path: ./
         file: Dockerfile
   iam:
@@ -49,6 +58,11 @@ provider:
           Action:
             - secretsmanager:GetSecretValue
             - sqs:SendMessage
+            - dynamodb:DescribeTable
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
           Resource: "*"
           
   vpc:
@@ -69,7 +83,7 @@ fargate:
   tasks:
     sui-events-listener:
       name: ${self:custom.stage}-sui-events-listener
-      image: sui-ecs-nodejs
+      image: sui-integration-examples-nodejs
       command:
         - "./dist/sui-events-listener.mjs"
       environment:
@@ -79,68 +93,66 @@ fargate:
         AWS_ACCOUNT_ID: ${self:provider.environment.AWS_ACCOUNT_ID}
         DYNAMODB_ENDPOINT: ${self:provider.environment.DYNAMODB_ENDPOINT}
         SUI_PACKAGE_ADDRESS: ${self:provider.environment.SUI_PACKAGE_ADDRESS}
-        SUI_USERS_RATING_COLLECTION: ${self:provider.environment.SUI_USERS_RATING_COLLECTION}
         SUI_RPC_ENDPOINT: ${self:provider.environment.SUI_RPC_ENDPOINT}
   
 functions:
+
   sui-sign-sponsored-transaction:
-    handler: src/handlers/sui-sign-sponsored-transaction.handler
+    handler: src/handlers/http/sui-sign-sponsored-transaction.handler
     events:
       - httpApi:
           path: '/blockchain/sui-sign-sponsored-transaction'
           method: 'POST'
 
-  account-register:
-    handler: src/handlers/account-register.handler
-    events:
-      - httpApi:
-          path: '/account/register'
-          method: 'POST'
+  # sui-events-listener:
+  #   handler: src/handlers/schedule/sui-events-listener.handler
+  #   events:
+  #   - schedule:
+  #       name: ${self:custom.stage}-events-listener
+  #       rate: rate(1 minute)
 
-  validate-token:
-    handler: src/handlers/validate-token.handler
+  process-sui-event:
+    handler: src/handlers/sqs/process-sui-event.handler
+    timeout: 50
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - suiListenerQueue
+              - Arn
 
 resources:
   Resources:
-    userTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:custom.stage}-suiql-user
-        AttributeDefinitions:
-          - AttributeName: login
-            AttributeType: S
-        KeySchema:
-          - AttributeName: login
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-    webhooksTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:custom.stage}-suiql-webhook
-        AttributeDefinitions:
-          - AttributeName: webhook_id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: webhook_id
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-    suiQueue:
+    suiListenerQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:custom.stage}-suiQueue.fifo
+        QueueName: ${self:custom.stage}-suiListener.fifo
         VisibilityTimeout: 50
         FifoQueue: true
         ContentBasedDeduplication: true
         DeduplicationScope: messageGroup
         FifoThroughputLimit: perMessageGroupId
 
+    suiListenerConfigTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.stage}-sui-listener-config
+        AttributeDefinitions:
+          - AttributeName: key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: key
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
 package:
   individually: true
 
 plugins:
-  - serverless-webpack
+  - serverless-bundle
   - serverless-offline
   - serverless-offline-sqs
   - serverless-offline-sns
-  - serverless-middleware
-
+  - serverless-dynamodb-local
+  - serverless-offline-elasticmq
+  - serverless-fargate

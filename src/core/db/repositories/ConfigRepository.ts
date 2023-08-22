@@ -2,16 +2,10 @@ import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 import { DynamoDBConnector } from 'src/core/db/DynamoDbConnector';
 import { Config } from 'src/core/db/entities/Config';
 import { BaseDynamoDbRepository } from 'src/core/db/repositories/BaseDynamoDbRepository';
-import { Network } from 'src/models/event-models';
 
-const BASE_TABLE_NAME_CONFIG = 'query-index-config';
+const BASE_TABLE_NAME_CONFIG = 'sui-listener-config';
 
-export async function getKeyForLastBlockByNetwork(
-  network: Network
-): Promise<string> {
-  const key = `lastBlockNumber${Network[network]}`;
-  return key;
-}
+export const LISTENER_CURSOR = 'listenerCursor';
 
 export class ConfigRepository extends BaseDynamoDbRepository<Config, string> {
   constructor(conn: DynamoDBConnector) {

@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import { readSuiEvents } from 'src/controllers/sui-blockchain-controller';
+import { readSuiEvents } from 'src/controllers/sui-listener-controller';
 import { runTask } from 'src/core/utils/ecs';
 import { log } from 'src/core/utils/logger';
 import { handleScheduleRequest } from 'src/core/utils/schedule';
