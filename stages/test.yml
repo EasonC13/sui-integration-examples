@@ -2,11 +2,11 @@ region: 'us-east-2'
 environment:
   ENV: 'test'
   REGION: 'us-east-2'
-  AWS_ACCOUNT_ID: '000000001' # UPDATE
+  AWS_ACCOUNT_ID: '939077196930'
 
-  SECURITY_GROUP_ID: 'sg-000' # UPDATE
-  SUBNET_ID_1: 'subnet-001' # UPDATE
-  SUBNET_ID_2: 'subnet-002' # UPDATE
+  SECURITY_GROUP_ID: 'sg-b90a3dde'
+  SUBNET_ID_1: 'subnet-0b05f160'
+  SUBNET_ID_2: 'subnet-f4be9c8e'
 
   ALLOWED_ORIGIN: '*' # UPDATE
 
@@ -14,5 +14,5 @@ environment:
   SNS_ENDPOINT: 'https://sns.us-east-2.amazonaws.com'
   SQS_ENDPOINT: 'https://sqs.us-east-2.amazonaws.com'
 
-  SUI_PACKAGE_ADDRESS: '0xbde01689197bbfe9c02541417058ee9dda5dbd05d0ae4628d15017d49e24a36d' # UPDATE
+  SUI_PACKAGE_ADDRESS: '0xc2f6f4d5e11f5172f17dcb3e5570a9e5e127f4d16b541a9f93a5d8c6c43eace2'
   SUI_RPC_ENDPOINT: "https://fullnode.testnet.sui.io/"

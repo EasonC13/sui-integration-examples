@@ -188,10 +188,5 @@ export async function handleRequest(
   event: any,
   responseType: ResponseType = ResponseType.JSON
 ): Promise<any> {
-    return baseHandleRequest(
-    RequestModelType,
-    handlerFunc,
-    event,
-    responseType
-  );
+  return baseHandleRequest(RequestModelType, handlerFunc, event, responseType);
 }

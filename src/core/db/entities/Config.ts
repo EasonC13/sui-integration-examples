@@ -3,7 +3,7 @@ export class Config {
 
   public value?: string;
 
-  constructor(props: { key?: string; value?: string }) {
+  constructor(props: Config) {
     this.key = props.key;
     this.value = props.value;
   }

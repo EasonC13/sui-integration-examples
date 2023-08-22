@@ -2,10 +2,10 @@ import { JsonRpcProvider, Connection } from '@mysten/sui.js';
 import { ConfigurationError } from 'src/core/errors';
 
 export async function createSuiProvider() {
-  if (!process.env.RPC_SUI_ENDPOINT) {
-    throw new ConfigurationError('RPC_SUI_ENDPOINT is not configured');
+  if (!process.env.SUI_RPC_ENDPOINT) {
+    throw new ConfigurationError('SUI_RPC_ENDPOINT is not configured');
   }
-  const endpoint = process.env.RPC_SUI_ENDPOINT;
+  const endpoint = process.env.SUI_RPC_ENDPOINT;
   const connection = new Connection({ fullnode: endpoint });
 
   return new JsonRpcProvider(connection);
@@ -13,13 +13,14 @@ export async function createSuiProvider() {
 
 export async function queryEvents(
   packageAddress: string,
+  moduleLib: string,
   cursor: string | undefined | null,
   maxTxNumber: number
 ) {
-  if (!process.env.RPC_SUI_ENDPOINT) {
-    throw new ConfigurationError('RPC_SUI_ENDPOINT is not configured');
+  if (!process.env.SUI_RPC_ENDPOINT) {
+    throw new ConfigurationError('SUI_RPC_ENDPOINT is not configured');
   }
-  const endpoint = process.env.RPC_SUI_ENDPOINT;
+  const endpoint = process.env.SUI_RPC_ENDPOINT;
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -33,7 +34,8 @@ export async function queryEvents(
       params: [
         {
           MoveModule: {
-            package: packageAddress
+            package: packageAddress,
+            module: moduleLib,
           },
         },
         cursor,

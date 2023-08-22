@@ -10,7 +10,9 @@
     "clean": "rimraf dist .webpack .serverless",
     "lint": "eslint --ext .js,.ts .",
     "build-types": "tsc --noEmit --pretty",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build-ecs": "node build-ecs.js",
+    "sui-listener": "npm run build-ecs && node -r dotenv/config ./dist/sui-events-listener.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.325.0",
@@ -19,7 +21,9 @@
     "@mysten/sui.js": "^0.39.0",
     "aws-sdk": "^2.1402.0",
     "cross-fetch": "^3.1.5",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "esbuild": "^0.19.2",
+    "serverless-dynamodb-local": "^0.2.40"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.29.0",
@@ -38,6 +42,7 @@
     "serverless-bundle": "^5.5.0",
     "serverless-dotenv-plugin": "^4.0.2",
     "serverless-offline": "^12.0.4",
+    "serverless-offline-elasticmq": "^0.0.11",
     "serverless-offline-sns": "^0.76.0",
     "serverless-offline-sqs": "^7.3.2",
     "ts-loader": "^9.4.2",

@@ -13,7 +13,7 @@
     "overrides": [
       // Configuration for TypeScript files
       {
-        "files": ["./services/**/*.ts", "./services/**/*.tsx"],
+        "files": ["**/*.ts", "**/*.tsx"],
         "plugins": ["@typescript-eslint", "unused-imports"],
         "extends": ["airbnb-typescript/base", "plugin:prettier/recommended"],
         "parserOptions": {

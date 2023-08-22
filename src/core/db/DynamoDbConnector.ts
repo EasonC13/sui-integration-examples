@@ -1,19 +1,19 @@
-import { DynamoDB } from 'aws-sdk';
+import AWS from 'aws-sdk';
 import { TransactWriteItemList } from 'aws-sdk/clients/dynamodb';
 
 export class DynamoDBConnector {
-  private dynamoDB: DynamoDB;
+  private dynamoDB: AWS.DynamoDB;
 
   constructor(env: any) {
     const { DYNAMODB_ENDPOINT, REGION } = env;
-    const options: DynamoDB.Types.ClientConfiguration = {
+    const options: AWS.DynamoDB.Types.ClientConfiguration = {
       region: REGION,
       endpoint: DYNAMODB_ENDPOINT,
     };
-    this.dynamoDB = new DynamoDB(options);
+    this.dynamoDB = new AWS.DynamoDB(options);
   }
 
-  public getDynamoDB(): DynamoDB {
+  public getDynamoDB(): AWS.DynamoDB {
     return this.dynamoDB;
   }
 

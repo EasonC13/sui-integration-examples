@@ -1,16 +1,13 @@
 /* eslint-disable no-await-in-loop */
-// import { PaginatedEvents } from '@mysten/sui.js';
-import { SUI_LISTENER_SQS_QUEUE_NAME } from 'src/core/constants';
-// import { SUI_LISTENER_SNS_TOPIC_NAME } from 'src/core/constants';
+import { PaginatedEvents } from '@mysten/sui.js';
+import { SUI_LISTENER_SQS_QUEUE_NAME, suiModules } from 'src/core/constants';
 import { DynamoDBConnector } from 'src/core/db/DynamoDbConnector';
-// import { Config } from 'src/core/db/entities/Config';
-import { ConfigRepository, LISTENER_CURSOR } from 'src/core/db/repositories/ConfigRepository';
+import { Config } from 'src/core/db/entities/Config';
+import { ConfigRepository } from 'src/core/db/repositories/ConfigRepository';
 import { ConfigurationError } from 'src/core/errors';
-import { queryEvents } from 'src/core/utils/sui';
-// import { cleanEventType } from 'src/core/sui-blockchain/utils';
 import { log } from 'src/core/utils/logger';
-// import { pushToSNS } from 'src/core/utils/sns';
 import { pushToSQS } from 'src/core/utils/sqs';
+import { queryEvents } from 'src/core/utils/sui';
 import {
   ReadSuiEventsRequestModel,
   ReadSuiEventsResponseModel,
@@ -30,52 +27,65 @@ export async function readSuiEvents(
   const { SUI_PACKAGE_ADDRESS } = process.env;
 
   log('Reading cursors from db.');
-  const cursorConfig = await configRepository.get(LISTENER_CURSOR);
-  const cursor = cursorConfig && cursorConfig.value ? JSON.parse(cursorConfig.value) : undefined;
-
-  log(
-    `Requesting ${TRANSACTIONS_MAX_NUMBER} events for package ${SUI_PACKAGE_ADDRESS} with cursor ${cursorConfig?.value}`
+  const moduleConfigPromises: Promise<Config | null>[] = [];
+  suiModules.forEach((module) =>
+    moduleConfigPromises.push(configRepository.get(module))
   );
-  const events = await queryEvents(SUI_PACKAGE_ADDRESS, cursor, TRANSACTIONS_MAX_NUMBER);
+  const moduleConfigs = await Promise.all(moduleConfigPromises);
 
-  log(`Number of recieved events: ${JSON.stringify(events)}`);
+  const eventsPromises: Promise<PaginatedEvents>[] = [];
 
-  log('Pushing new events to SQS and SNS.');
+  suiModules.forEach((module, index) => {
+    const cursorConfig = moduleConfigs[index];
+    const cursor = cursorConfig ? JSON.parse(cursorConfig.value!) : undefined;
 
-  for (let i = 0; i < events.length; i++) {
-    await pushToSQS(SUI_LISTENER_SQS_QUEUE_NAME, events[i]);
-    
-    // Optional events can also be pushed to SNS for other components to react to the events
-    // await pushToSNS(SUI_LISTENER_SNS_TOPIC_NAME, events[i]);
+    log(
+      `Requesting ${TRANSACTIONS_MAX_NUMBER} events for module ${module} with cursor ${cursorConfig?.value}`
+    );
+
+    eventsPromises.push(
+      queryEvents(SUI_PACKAGE_ADDRESS, module, cursor, TRANSACTIONS_MAX_NUMBER)
+    );
+  });
+
+  const events = await Promise.all(eventsPromises);
+
+  const eventObjects: any[] = [];
+  events.forEach((event) => event.data.forEach((ev) => eventObjects.push(ev)));
+  log(`Number of recieved events: ${eventObjects.length}`);
+
+  log('Pushing new events to SQS.');
+  for (let i = 0; i < eventObjects.length; i++) {
+    await pushToSQS(SUI_LISTENER_SQS_QUEUE_NAME, eventObjects[i]);
   }
 
-  // const configPromises: Promise<any>[] = [];
-  // const nextCursors = events.map((item) => item.nextCursor);
+  const configPromises: Promise<any>[] = [];
+  const nextCursors = events.map((item) => item.nextCursor);
 
-  // log('Updating cursors.');
-  // nextCursors.forEach((newNextCursor, index) => {
-  //   const cursorKey = suiModules[index]!;
-  //   if (newNextCursor) {
-  //     const cursorValue = JSON.stringify(newNextCursor);
+  log('Updating cursors.');
+  nextCursors.forEach((newNextCursor, index) => {
+    const cursorKey = suiModules[index]!;
+    if (newNextCursor) {
+      const cursorValue = JSON.stringify(newNextCursor);
 
-  //     const cursorConfig = new Config({
-  //       key: cursorKey,
-  //       value: cursorValue,
-  //     });
+      const cursorConfig = new Config({
+        key: cursorKey,
+        value: cursorValue,
+      });
 
-  //     log(
-  //       `Updating next cursor for module ${cursorKey} in db - ${cursorValue}`
-  //     );
-  //     if (!moduleConfigs[index]) {
-  //       configPromises.push(configRepository.put(cursorConfig));
-  //     } else {
-  //       configPromises.push(configRepository.update(cursorKey, cursorConfig));
-  //     }
-  //   } else {
-  //     log(`No next cursor for module ${cursorKey}.`);
-  //   }
-  // });
-  // await Promise.all(configPromises);
+      log(
+        `Updating next cursor for module ${cursorKey} in db - ${cursorValue}`
+      );
+      if (!moduleConfigs[index]) {
+        configPromises.push(configRepository.put(cursorConfig));
+      } else {
+        configPromises.push(configRepository.update(cursorKey, cursorConfig));
+      }
+    } else {
+      log(`No next cursor for module ${cursorKey}.`);
+    }
+  });
+  await Promise.all(configPromises);
 
   return new ReadSuiEventsResponseModel();
 }

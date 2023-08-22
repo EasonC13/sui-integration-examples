@@ -16,3 +16,6 @@ package-lock.json
 
 secrets.json
 .meshrc.yaml
+
+.dynamodb
+dist

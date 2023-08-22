@@ -1,7 +1,7 @@
+import AWS from 'aws-sdk';
 import fetch from 'cross-fetch';
-import { log, LogLevel } from './logger';
 
-const AWS = require('aws-sdk');
+import { log, LogLevel } from './logger';
 
 global.fetch = fetch;
 

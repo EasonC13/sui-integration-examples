@@ -4,8 +4,11 @@ export class WebhookRequest {
   public id?: string;
 
   public network: string;
+
   public packageId: string;
+
   public secretToken: string;
+
   public state: string;
 
   constructor(req: any) {
@@ -20,6 +23,7 @@ export class WebhookRequest {
 
 export class WebhookStateRequest {
   public id: string;
+
   public state: string;
 
   constructor(req: any) {
@@ -37,10 +41,11 @@ export class WebhookStateRequest {
 
 export class WebhookResponse {
   public success: boolean;
+
   public id?: string;
 
   constructor(success: boolean, id?: string) {
     this.success = success;
-    this.id = id
+    this.id = id;
   }
 }

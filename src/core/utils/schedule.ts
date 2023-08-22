@@ -1,4 +1,5 @@
 import fetch from 'cross-fetch';
+
 import { log, LogLevel } from './logger';
 
 global.fetch = fetch;

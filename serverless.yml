@@ -7,6 +7,25 @@ custom:
     httpPort: 5000
     noPrependStageInUrl: true
     ignoreJWTSignature: true
+  dynamodb:
+    stages:
+      - offline
+    start:
+      port: 4659
+      inMemory: true
+      migrate: true
+  serverless-offline-sqs:
+    autoCreate: true
+    endpoint: http://0.0.0.0:9324
+    region: ${self:custom.region}
+    accessKeyId: root
+    secretAccessKey: root
+  elasticmq:
+    stages:
+      - dev
+    start:
+      port: 9324
+      noStart: false
 
 provider:
   name: aws
@@ -16,7 +35,6 @@ provider:
   memorySize: 512
   timeout: 10
   logRetentionInDays: 30
-  lambdaHashingVersion: 20201221
   logs:
     httpApi: true
   httpApi:
@@ -81,12 +99,22 @@ functions:
           path: '/blockchain/sui-sign-sponsored-transaction'
           method: 'POST'
 
-  sui-events-listener:
-    handler: src/handlers/http/sui-events-listener.handler
+  # sui-events-listener:
+  #   handler: src/handlers/schedule/sui-events-listener.handler
+  #   events:
+  #   - schedule:
+  #       name: ${self:custom.stage}-events-listener
+  #       rate: rate(1 minute)
+
+  process-sui-event:
+    handler: src/handlers/sqs/process-sui-event.handler
+    timeout: 50
     events:
-    - schedule:
-        name: ${self:custom.stage}-events-listener
-        rate: rate(1 minute)
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - suiListenerQueue
+              - Arn
 
 resources:
   Resources:
@@ -99,6 +127,7 @@ resources:
         ContentBasedDeduplication: true
         DeduplicationScope: messageGroup
         FifoThroughputLimit: perMessageGroupId
+
     suiListenerConfigTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -119,4 +148,5 @@ plugins:
   - serverless-offline
   - serverless-offline-sqs
   - serverless-offline-sns
-
+  - serverless-dynamodb-local
+  - serverless-offline-elasticmq
