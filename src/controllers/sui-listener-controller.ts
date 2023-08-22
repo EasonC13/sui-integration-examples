@@ -51,7 +51,7 @@ export async function readSuiEvents(
   const events = await Promise.all(eventsPromises);
 
   const eventObjects: any[] = [];
-  events.forEach((event) => event.data.forEach((ev) => eventObjects.push(ev)));
+  events.forEach((event) => eventObjects.push(...event.data));
   log(`Number of recieved events: ${eventObjects.length}`);
 
   log('Pushing new events to SQS.');

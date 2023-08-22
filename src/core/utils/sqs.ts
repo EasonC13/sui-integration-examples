@@ -15,7 +15,7 @@ const QUEUE_URL = `${process.env.SQS_ENDPOINT}/${
 
 export async function createSQSQueue(webhookId: string) {
   try {
-    const queueName: string = `webhook-${
+    const queueName = `webhook-${
       process.env.ENV === 'offline' ? 'queue' : process.env.AWS_ACCOUNT_ID
     }-${webhookId}`;
 

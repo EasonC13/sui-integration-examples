@@ -58,6 +58,11 @@ provider:
           Action:
             - secretsmanager:GetSecretValue
             - sqs:SendMessage
+            - dynamodb:DescribeTable
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
           Resource: "*"
           
   vpc:
@@ -78,7 +83,7 @@ fargate:
   tasks:
     sui-events-listener:
       name: ${self:custom.stage}-sui-events-listener
-      image: sui-ecs-nodejs
+      image: sui-integration-examples-nodejs
       command:
         - "./dist/sui-events-listener.mjs"
       environment:
@@ -150,3 +155,4 @@ plugins:
   - serverless-offline-sns
   - serverless-dynamodb-local
   - serverless-offline-elasticmq
+  - serverless-fargate

@@ -1,6 +1,6 @@
 import { log, LogLevel } from './logger';
 
-export async function runTask(task: Function) {
+export async function runTask(task: () => Promise<void>) {
   try {
     log(`Start executing task ${task.name}`);
 
