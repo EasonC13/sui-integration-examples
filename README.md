@@ -1,47 +1,48 @@
-# SUI Integrations Examples
+# SUI Integration Examples
 
-This repository provides examples of various integrations with SUI blockchain.
+This repository provides examples of various integrations with the SUI blockchain.
 
-There are 2 types of integrations currently:
+There are two types of integrations currently:
 
-1. Events listener and webhooks;
-1. Sponsored transactions.
+1. Event listeners and webhooks.
+2. Sponsored transactions.
 
-The code is implemented in TypeScript and runs in AWS Cloud environment using serverless technologies. [Serverless](https://www.serverless.com/) is used for deployments. [Serverless Offline](https://www.serverless.com/plugins/serverless-offline) is used to run code locally. 
+The code is implemented in TypeScript and runs within the AWS Cloud environment using serverless technologies. [Serverless](https://www.serverless.com/) is used for deployments. [Serverless Offline](https://www.serverless.com/plugins/serverless-offline) is used to run the code locally.
 
-## Events listener and webhooks
+## Event Listeners and Webhooks
 
-The diagram below describes the architecture of system components used for events and webhooks.
+The diagram below depicts the architecture of system components used for events and webhooks.
 
-![](images/events.png)
+![Events Architecture](images/events.png)
 
-Components:
-- **Events Listener** is ECS Fargate task that is constantly running and polling new events from SUI full node.
-- **Sui Listener Queue** is FIFO SQS queue where listener adds pushes events for further processing.
-- **Webhook Invoker** is lambda that is responsible for invoking Webhook.
-- **Event Bridge** invokes **Webhook Invoker** lambda whenever new items are added to **Sui Listener Queue**.
-- **Webhook** is AWS lambda that is reposnsible for processing of a single event from SUI blockchain.
+**Components:**
+- The **Events Listener** is an ECS Fargate task that runs continuously and polls new events from the SUI full node.
+- The **Sui Listener Queue** is a FIFO SQS queue where the listener adds events for further processing.
+- The **Webhook Invoker** is a Lambda function responsible for invoking webhooks.
+- The **Event Bridge** invokes the **Webhook Invoker** Lambda whenever new items are added to the **Sui Listener Queue**.
+- The **Webhook** is an AWS Lambda function responsible for processing a single event from the SUI blockchain.
 
-Workflow:
-1. **Events Listener** in a constant loop calls RPC `suix_queryEvents` to get new events for a configured package id. Everytime it begins to read from a cursor value saved in DynamoDb. New cursor vallue is updated after reading events.
+**Workflow:**
+1. The **Events Listener** runs in a continuous loop, making RPC calls to `suix_queryEvents` to retrieve new events for a configured package ID. Each time it starts reading from a cursor value stored in DynamoDB. The cursor value is updated after reading events.
 
-1. Whenever **Events Listener** finds new events it adds them to **Sui Listener Queue**.
+2. Whenever the **Events Listener** identifies new events, it adds them to the **Sui Listener Queue**.
 
-1. **AWS Event Bridge** invokes **Webhook Invoker** lambda as soon as new items are added to **Sui Listener Queue**.
+3. The **AWS Event Bridge** triggers the **Webhook Invoker** Lambda as soon as new items are added to the **Sui Listener Queue**.
 
-1. **Webhook Invoker** invokes **Webhook** for each event that it reads from the queue.
+4. The **Webhook Invoker** invokes the **Webhook** for each event it reads from the queue.
 
 ## Sponsored Transactions
 
-Sui Move includes functionality that lets builders pay the gas fees for some or all of their app transactions, eliminating one of the biggest hurdles users face in moving to Web3. Typically on Web3 networks, users pay what's called a gas fee to use an app. Sui's sponsored transaction functionality eliminates this friction for builders willing to adopt it.
+Sui Move includes functionality that enables builders to cover the gas fees for some or all of their app transactions. This functionality eliminates one of the most significant challenges users encounter when transitioning to Web3. Normally, on Web3 networks, users are required to pay a gas fee to use an app. However, Sui's sponsored transaction feature removes this obstacle for builders who are willing to adopt it.
 
-The diagram below demonstrates the sequence of steps to execute sponsored transaction:
+The diagram below illustrates the sequence of steps for executing a sponsored transaction:
 
-![](images/sponsor.png)
+![Sponsored Transaction Diagram](images/sponsor.png)
 
-Lambda function `sui-sign-sponsored-transaction` is responsible for signing the sponsored transaction.
+The Lambda function `sui-sign-sponsored-transaction` is responsible for signing the sponsored transaction.
 
-Client code example is below:
+Here's an example of client code:
+
 
 ```typescript
 // Call sponsored transaction API for sponsor signature. 
