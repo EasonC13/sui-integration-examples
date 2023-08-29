@@ -42,7 +42,7 @@ npm install
 
 - Install DynamoDb 
 ```
-sls dynamodb install
+npm run dynamodb:install
 ```
 
 If you are getting an error `Error getting DynamoDb local latest tar.gz location undefined: 403` on this step then it means that there is still a known issue in `serverless-dynamodb-local` plugin.

@@ -1,7 +1,8 @@
 {
-  "name": "peeranha-query-index",
+  "name": "sui-integration-examples",
   "version": "1.0.0",
   "scripts": {
+    "dynamodb:install": "sls dynamodb install",
     "dev": "cross-env sls offline start --stage offline",
     "deploy:test": "cross-env sls deploy --stage test",
     "remove:test": "sls remove --stage test",
