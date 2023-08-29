@@ -22,7 +22,7 @@ custom:
     secretAccessKey: root
   elasticmq:
     stages:
-      - dev
+      - offline
     start:
       port: 9324
       noStart: false
@@ -30,7 +30,7 @@ custom:
 provider:
   name: aws
   region: ${self:custom.region}
-  runtime: nodejs16.x
+  runtime: nodejs18.x
   environment: ${file(./stages/${self:custom.stage}.yml):environment}
   memorySize: 512
   timeout: 10
@@ -104,6 +104,7 @@ functions:
           path: '/blockchain/sui-sign-sponsored-transaction'
           method: 'POST'
 
+  # NOTE: Uncomment if need to run listener in local. Fargate task will not run with serverless offline.
   # sui-events-listener:
   #   handler: src/handlers/schedule/sui-events-listener.handler
   #   events:
@@ -150,9 +151,9 @@ package:
 
 plugins:
   - serverless-bundle
+  - serverless-dynamodb-local
   - serverless-offline
   - serverless-offline-sqs
   - serverless-offline-sns
-  - serverless-dynamodb-local
   - serverless-offline-elasticmq
   - serverless-fargate

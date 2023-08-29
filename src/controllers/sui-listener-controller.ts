@@ -4,7 +4,7 @@ import { SUI_LISTENER_SQS_QUEUE_NAME, suiModules } from 'src/core/constants';
 import { DynamoDBConnector } from 'src/core/db/DynamoDbConnector';
 import { Config } from 'src/core/db/entities/Config';
 import { ConfigRepository } from 'src/core/db/repositories/ConfigRepository';
-import { ConfigurationError } from 'src/core/errors';
+import { ConfigurationError, RuntimeError } from 'src/core/errors';
 import { log } from 'src/core/utils/logger';
 import { pushToSQS } from 'src/core/utils/sqs';
 import { queryEvents } from 'src/core/utils/sui';
@@ -37,7 +37,10 @@ export async function readSuiEvents(
 
   suiModules.forEach((module, index) => {
     const cursorConfig = moduleConfigs[index];
-    const cursor = cursorConfig ? JSON.parse(cursorConfig.value!) : undefined;
+    const cursor =
+      cursorConfig && cursorConfig.value
+        ? JSON.parse(cursorConfig.value)
+        : undefined;
 
     log(
       `Requesting ${TRANSACTIONS_MAX_NUMBER} events for module ${module} with cursor ${cursorConfig?.value}`
@@ -64,7 +67,12 @@ export async function readSuiEvents(
 
   log('Updating cursors.');
   nextCursors.forEach((newNextCursor, index) => {
-    const cursorKey = suiModules[index]!;
+    const cursorKey = suiModules[index];
+
+    if (cursorKey === undefined) {
+      throw new RuntimeError(`Module by index ${index} is not configured`);
+    }
+
     if (newNextCursor) {
       const cursorValue = JSON.stringify(newNextCursor);
 

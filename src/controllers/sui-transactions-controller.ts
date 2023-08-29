@@ -1,10 +1,7 @@
-import {
-  Connection,
-  Ed25519Keypair,
-  JsonRpcProvider,
-  RawSigner,
-  TransactionBlock,
-} from '@mysten/sui.js';
+import { RawSigner } from '@mysten/sui.js';
+import { SuiClient } from '@mysten/sui.js/client';
+import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { ConfigurationError } from 'src/core/errors';
 import { getSecretValue } from 'src/core/utils/secrets';
 import {
@@ -25,8 +22,7 @@ export async function signSponsoredTransaction(
     throw new ConfigurationError('SUI_ACTION_MAX_BUDGET is not configured');
   }
   const { SUI_RPC_URL } = process.env;
-  const connection = new Connection({ fullnode: SUI_RPC_URL });
-  const provider = new JsonRpcProvider(connection);
+  const provider = new SuiClient({ url: SUI_RPC_URL });
 
   const sponsorAccountPrivateKey = await getSecretValue(
     'SUI_SPONSOR_PRIVATE_KEY'

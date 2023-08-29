@@ -14,5 +14,5 @@ environment:
   SNS_ENDPOINT: 'https://sns.us-east-2.amazonaws.com'
   SQS_ENDPOINT: 'https://sqs.us-east-2.amazonaws.com'
 
-  SUI_PACKAGE_ADDRESS: '0xc2f6f4d5e11f5172f17dcb3e5570a9e5e127f4d16b541a9f93a5d8c6c43eace2'
+  SUI_PACKAGE_ADDRESS: '0x0000000000000000000000000000000000000000000000000000000000000003'
   SUI_RPC_ENDPOINT: "https://fullnode.testnet.sui.io/"
