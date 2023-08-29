@@ -8,5 +8,6 @@ export enum LogLevel {
 }
 
 export const log = (obj: any, _level: LogLevel = LogLevel.INFO): void => {
+  /* eslint-disable no-console */
   console.log(obj);
 };

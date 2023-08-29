@@ -10,6 +10,7 @@ const DELAY_MS = 1000;
 
 async function readSuiEventsLoop() {
   log('Start SUI listener.');
+  /* eslint-disable no-constant-condition */
   while (true) {
     const request = new ReadSuiEventsRequestModel();
     await handleScheduleRequest(request, readSuiEvents);
