@@ -22,7 +22,7 @@ custom:
     secretAccessKey: root
   elasticmq:
     stages:
-      - offline
+      - dev
     start:
       port: 9324
       noStart: false
