@@ -48,7 +48,7 @@ npm run dynamodb:install
 If you are getting an error `Error getting DynamoDb local latest tar.gz location undefined: 403` on this step then it means that there is still a known issue in `serverless-dynamodb-local` plugin.
 It is discussed [here](https://github.com/99x/serverless-dynamodb-local/issues/294).
   - In `node_modules/dynamodb-localhost/dynamodb/config.json`change URL to `https://s3.us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz` (add s to http)
-  - In `node_modules/dynamodb-localhost/dynamodb/installer.j` change `http` to `https`
+  - In `node_modules/dynamodb-localhost/dynamodb/installer.js` change `http` to `https`
 
 - To start services run
 ```
